@@ -27,7 +27,7 @@ public class HandleAnimations : MonoBehaviour
         float movement = Mathf.Abs(states.horizontal);
         anim.SetFloat("Movement", movement);
 
-        if(states.vertical < 0) //КАК РАБОТАЕТ VERTICAL И HORIZONTAL, посмотреть еще раз
+        if(states.vertical < 0) 
         {
             states.crouch = true;
         }

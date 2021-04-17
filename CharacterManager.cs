@@ -3,17 +3,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class CharacterManager : MonoBehaviour
+public class CharacterManager : MonoBehaviour //класс, позволяющий получить тип и объект персонажа, со всеми его составляющими
 {
     public int numberOfUsers;
-    public List<PlayerBase> players = new List<PlayerBase>(); //список (массив абстрактного типа) со списком всех наших игроков (?) и типами игроков
+    public List<PlayerBase> players = new List<PlayerBase>(); //список (массив абстрактного типа) со списком всех наших игроков и типами игроков
 
     //в списке содержится все, что нам необходимо знать о каждом отдельном персонаже
     //на данный момент, это id персонажа (?) и ему соотвествующий (corresponding) префаб
     public List<CharacterBase> characterList = new List<CharacterBase>();
 
     //эту функцию мы используем для определения выбираемеого персонажа по его id
-    public CharacterBase returnCharacterWithID(string id) //проверяет вводимый id, ищет нужный (?)
+    public CharacterBase returnCharacterWithID(string id) //проверяет вводимый id, ищет нужный
     {
         CharacterBase retVal = null;
 
@@ -28,7 +28,7 @@ public class CharacterManager : MonoBehaviour
 
         return retVal;
     }
-
+    //возвращает характеристики персонажа
     public PlayerBase returnPlayerFromStates(StateManager states)
     {
         PlayerBase retVal = null;
@@ -81,6 +81,5 @@ public class PlayerBase
     {
         user, //реальный человек (игрок)
         ai, //компьютер
-        simulation //для икльтиплеера вне сети (??)
     }
 }

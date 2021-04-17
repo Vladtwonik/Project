@@ -114,7 +114,7 @@ public class SelectScreenManager : MonoBehaviour
 
     IEnumerator LoadLevel()
     {
-        //проверяем, является ли искусственным интеллектом игрок
+        //проверяем, является ли игрок компьютером
         for (int i = 0 ; i < charManager.players.Count ; i++)
         {
             if (charManager.players[i].playerType == PlayerBase.PlayerType.ai)

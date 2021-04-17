@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ButtonRef : MonoBehaviour
+public class ButtonRef : MonoBehaviour //для индикатора возле кнопок в меню
 {
     public GameObject selectIndicator;
     public bool selected;

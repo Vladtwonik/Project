@@ -41,9 +41,9 @@ public class StateManager : MonoBehaviour
         handleMovement = GetComponent<HandleMovement>();
         sRenderer = GetComponent<SpriteRenderer>();
     }
-    void FixedUpdate()
+    void FixedUpdate() // поворот, проверка на землю, проверка на смерть
     {
-        sRenderer.flipX = lookRight;
+        sRenderer.flipX = lookRight; //SpriteRenderer.flipX - метод класса SpriteRenderer, переворачивающий объект по оси X
 
         onGround = isOnGround();
 
@@ -62,7 +62,7 @@ public class StateManager : MonoBehaviour
             }
         }
     }
-    bool isOnGround() //ПЕРЕСМОТРЕТЬ И ОБДУМАТЬ ЕЩЕ РАЗ 
+    bool isOnGround() //персонаж на земле?
     {
         bool retVal = false;
 
@@ -72,7 +72,7 @@ public class StateManager : MonoBehaviour
         return retVal;
     }
 
-    public void ResetStateInputs()
+    public void ResetStateInputs() //
     {
         horizontal = 0;
         vertical = 0;
@@ -85,12 +85,12 @@ public class StateManager : MonoBehaviour
         dontMove = false;
     }
 
-    public void CloseMovementCollider(int index)
+    public void CloseMovementCollider(int index) //закрывает ненужные коллайдеры удара, когда спрайт поворачивается (определение по индексу)
     {
         movementColliders[index].SetActive(false);
     }
 
-    public void OpenMovementCollider(int index)
+    public void OpenMovementCollider(int index) //открывает нужные коллайдеры удара, когда спрайт поворачивается (определение по индексу)
     {
         movementColliders[index].SetActive(true);
     }

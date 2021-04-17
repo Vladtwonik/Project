@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-public class IntroSceneManager : MonoBehaviour
+public class IntroSceneManager : MonoBehaviour //для меню, в котором можно выбрать режим игры (один игрок или 2 игрока)
 {
     public GameObject startText;
     float timer;
@@ -30,7 +30,7 @@ public class IntroSceneManager : MonoBehaviour
             if (timer > 0.6f)
             {
                 timer = 0;
-                startText.SetActive(startText.activeInHierarchy);
+                startText.SetActive(startText.activeInHierarchy); //GameObject.activeInHierarchy - метод, позволяющий узнать, активен ли элемент на сцене
             }
             
             //действия после нажатия клавиши "пробел"
@@ -76,9 +76,9 @@ public class IntroSceneManager : MonoBehaviour
                         activeElement = 0;
                     }
                 }
-           //повторное нажатие клавиши "пробел" - выбор режима
+           //нажатие клавиши "Enter" - выбор режима игры
 
-                if (Input.GetKeyUp(KeyCode.Space) || Input.GetButtonUp("Jump"))
+                if (Input.GetKeyUp(KeyCode.Return))
                 {
                     //загружаем уровень с учетом выбранного режима
                     Debug.Log("load");
@@ -94,7 +94,7 @@ public class IntroSceneManager : MonoBehaviour
         switch(activeElement)
         {
             case 0:
-                CharacterManager.GetInstance().numberOfUsers = 1; //Get instance дословно переводится как "Получить экземпляр"
+                CharacterManager.GetInstance().numberOfUsers = 1; 
             break;
             
             case 1:
@@ -110,6 +110,6 @@ public class IntroSceneManager : MonoBehaviour
         yield return new WaitForSeconds(0.6f);
         startText.SetActive(false);
         yield return new WaitForSeconds(1.5f);
-        SceneManager.LoadSceneAsync("select", LoadSceneMode.Single);
+        SceneManager.LoadSceneAsync("Select", LoadSceneMode.Single);
     }
 }
