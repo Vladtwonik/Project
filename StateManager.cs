@@ -1,22 +1,22 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
-public class StateManager : MonoBehaviour
-{
+public class StateManager : MonoBehaviour {
+
     public int health = 100;
+
     public float horizontal;
     public float vertical;
     public bool attack1;
     public bool attack2;
     public bool attack3;
     public bool crouch;
-    
+
     public bool canAttack;
     public bool gettingHit;
     public bool currentlyAttacking;
-   
+
     public bool dontMove;
     public bool onGround;
     public bool lookRight;
@@ -24,7 +24,6 @@ public class StateManager : MonoBehaviour
     public Slider healthSlider;
     SpriteRenderer sRenderer;
 
-    //[HideInInspector] - позволяет скрыть отображение объектов в инспекторе, но оставляет возможность использовать из других скриптов
     [HideInInspector]
     public HandleDamageColliders handleDC;
     [HideInInspector]
@@ -34,35 +33,40 @@ public class StateManager : MonoBehaviour
 
     public GameObject[] movementColliders;
 
+    ParticleSystem blood;
+
     void Start()
     {
         handleDC = GetComponent<HandleDamageColliders>();
         handleAnim = GetComponent<HandleAnimations>();
         handleMovement = GetComponent<HandleMovement>();
-        sRenderer = GetComponent<SpriteRenderer>();
+        sRenderer = GetComponentInChildren<SpriteRenderer>();
+        blood = GetComponentInChildren<ParticleSystem>();
     }
-    void FixedUpdate() // поворот, проверка на землю, проверка на смерть
-    {
-        sRenderer.flipX = lookRight; //SpriteRenderer.flipX - метод класса SpriteRenderer, переворачивающий объект по оси X
+
+	void FixedUpdate () {
+
+        sRenderer.flipX = lookRight;
 
         onGround = isOnGround();
 
-        if (healthSlider != null)
+        if(healthSlider != null)
         {
-            healthSlider.value = health * 0.01f;
+            healthSlider.value =health * 0.01f;
         }
 
-        if(health <= 0)
+        if (health <= 0)
         {
-            if(LevelManager.GetInstance().countdown)
+            if (LevelManager.GetInstance().countdown)
             {
                 LevelManager.GetInstance().EndTurnFunction();
 
                 handleAnim.anim.Play("Dead");
             }
         }
-    }
-    bool isOnGround() //персонаж на земле?
+	}
+
+    bool isOnGround()
     {
         bool retVal = false;
 
@@ -72,7 +76,7 @@ public class StateManager : MonoBehaviour
         return retVal;
     }
 
-    public void ResetStateInputs() //
+    public void ResetStateInputs()
     {
         horizontal = 0;
         vertical = 0;
@@ -85,12 +89,12 @@ public class StateManager : MonoBehaviour
         dontMove = false;
     }
 
-    public void CloseMovementCollider(int index) //закрывает ненужные коллайдеры удара, когда спрайт поворачивается (определение по индексу)
+    public void CloseMovementCollider(int index)
     {
         movementColliders[index].SetActive(false);
     }
 
-    public void OpenMovementCollider(int index) //открывает нужные коллайдеры удара, когда спрайт поворачивается (определение по индексу)
+    public void OpenMovementCollider(int index)
     {
         movementColliders[index].SetActive(true);
     }
@@ -99,24 +103,29 @@ public class StateManager : MonoBehaviour
     {
         if (!gettingHit)
         {
-            switch(damageType)
+            switch (damageType)
             {
                 case HandleDamageColliders.DamageType.light:
                     StartCoroutine(CloseImmortality(0.3f));
                     break;
                 case HandleDamageColliders.DamageType.heavy:
                     handleMovement.AddVelocityOnCharacter(
-                        ((!lookRight) ? Vector3.right * 1 : Vector3.right * (-1)) + Vector3.up
+                        ((!lookRight) ? Vector3.right * 1 : Vector3.right * -1) + Vector3.up
                         , 0.5f
                         );
+
                     StartCoroutine(CloseImmortality(1));
                     break;
             }
+
+            if(blood != null)
+                blood.Emit(30);
 
             health -= damage;
             gettingHit = true;
         }
     }
+
     IEnumerator CloseImmortality(float timer)
     {
         yield return new WaitForSeconds(timer);

@@ -1,9 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Collections;
 
-public class InputHandler : MonoBehaviour
-{
+public class InputHandler : MonoBehaviour {
+
     public string playerInput;
 
     float horizontal;
@@ -19,7 +18,7 @@ public class InputHandler : MonoBehaviour
         states = GetComponent<StateManager>();
     }
 
-    private void FixedUpdate()
+    void FixedUpdate()
     {
         horizontal = Input.GetAxis("Horizontal" + playerInput);
         vertical = Input.GetAxis("Vertical" + playerInput);
@@ -33,4 +32,5 @@ public class InputHandler : MonoBehaviour
         states.attack2 = attack2;
         states.attack3 = attack3;
     }
+	
 }

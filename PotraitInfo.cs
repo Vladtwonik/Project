@@ -1,9 +1,11 @@
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
-using System.Collections.Generic;
-public class PotraitInfo : MonoBehaviour
-{
+
+public class PotraitInfo : MonoBehaviour {
+
     public int posX;
     public int posY;
     public string characterId;
+    public Image img;
 }

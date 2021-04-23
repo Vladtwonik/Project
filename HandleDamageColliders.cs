@@ -1,13 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Collections;
 
-public class HandleDamageColliders : MonoBehaviour
-{
-    //public DCtype dcType
+public class HandleDamageColliders : MonoBehaviour {
+
+    //public DCtype dcType;
 
     public GameObject[] damageCollidersLeft;
-    public GameObject[] damageCollidersRight;
+    public GameObject[] damageColldersRight;
 
     public enum DamageType
     {
@@ -31,9 +30,9 @@ public class HandleDamageColliders : MonoBehaviour
 
     public void OpenCollider(DCtype type, float delay, DamageType damageType)
     {
-        if(!states.lookRight)
+        if (!states.lookRight)
         {
-            switch(type)
+            switch (type)
             {
                 case DCtype.bottom:
                     StartCoroutine(OpenCollider(damageCollidersLeft, 0, delay, damageType));
@@ -48,10 +47,10 @@ public class HandleDamageColliders : MonoBehaviour
             switch (type)
             {
                 case DCtype.bottom:
-                    StartCoroutine(OpenCollider(damageCollidersRight, 0, delay, damageType));
+                    StartCoroutine(OpenCollider(damageColldersRight, 0, delay, damageType));
                     break;
                 case DCtype.up:
-                    StartCoroutine(OpenCollider(damageCollidersRight, 1, delay, damageType));
+                    StartCoroutine(OpenCollider(damageColldersRight, 1, delay, damageType));
                     break;
             }
         }
@@ -66,11 +65,10 @@ public class HandleDamageColliders : MonoBehaviour
 
     public void CloseColliders()
     {
-        for(int i = 0; i < damageCollidersLeft.Length; i++)
+        for (int i = 0; i < damageCollidersLeft.Length; i++)
         {
             damageCollidersLeft[i].SetActive(false);
-            damageCollidersRight[i].SetActive(false);
-
+            damageColldersRight[i].SetActive(false);
         }
     }
 }

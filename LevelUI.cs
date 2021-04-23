@@ -1,21 +1,20 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-using System.Collections.Generic;
 
-public class LevelUI : MonoBehaviour
-{
-     public Text AnnouncerTextLine1;
-     public Text AnnouncerTextLine2;
-     public Text LevelTimer;
+public class LevelUI : MonoBehaviour {
 
-     public Slider[] healthSliders;
+    public Text AnnouncerTextLine1;
+    public Text AnnouncerTextLine2;
+    public Text LevelTimer;
 
-     public GameObject[] winIndicatorGrids;
-     public GameObject winIndicator;
+    public Slider[] healthSliders;
 
-     public LevelUI instance;
-    public LevelUI GetInstance()
+    public GameObject[] winIndicatorGrids;
+    public GameObject winIndicator;
+
+    public static LevelUI instance;
+    public static LevelUI GetInstance()
     {
         return instance;
     }

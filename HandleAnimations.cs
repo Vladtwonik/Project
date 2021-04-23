@@ -1,22 +1,21 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Collections;
 
-public class HandleAnimations : MonoBehaviour
-{
+public class HandleAnimations : MonoBehaviour {
+
     public Animator anim;
     StateManager states;
 
-    public float attackRate = .3f; //с какой скоростью мы можем атаковать, короче - скорость атаки
+    public float attackRate = .3f;
     public AttacksBase[] attacks = new AttacksBase[2];
 
-    void Start()
+	void Start () 
     {
         states = GetComponent<StateManager>();
         anim = GetComponentInChildren<Animator>();
-    }
+	}
 
-    void FixedUpdate()
+	void FixedUpdate () 
     {
         states.dontMove = anim.GetBool("DontMove");
 
@@ -24,10 +23,10 @@ public class HandleAnimations : MonoBehaviour
         anim.SetBool("OnAir", !states.onGround);
         anim.SetBool("Crouch", states.crouch);
 
-        float movement = Mathf.Abs(states.horizontal);
+        float movement =(states.lookRight)? states.horizontal : -states.horizontal;
         anim.SetFloat("Movement", movement);
 
-        if(states.vertical < 0) 
+        if(states.vertical < 0)
         {
             states.crouch = true;
         }
@@ -37,13 +36,13 @@ public class HandleAnimations : MonoBehaviour
         }
 
         HandleAttacks();
-    }
-
-    void HandleAttacks() //если хочешь добавить варианты атак, то их необходимо добавлять здесь
+	}
+ 
+    void HandleAttacks()
     {
-        if(states.canAttack)
+        if (states.canAttack)
         {
-            if(states.attack1)
+            if (states.attack1)
             {
                 attacks[0].attack = true;
                 attacks[0].attackTimer = 0;
@@ -56,13 +55,13 @@ public class HandleAnimations : MonoBehaviour
 
                 if(attacks[0].attackTimer > attackRate || attacks[0].timesPressed >= 3)
                 {
-                    attacks[0].attack = false;
                     attacks[0].attackTimer = 0;
-                    attacks[0].timesPressed++;
+                    attacks[0].attack = false;
+                    attacks[0].timesPressed = 0;
                 }
             }
 
-            if(states.attack2)
+            if (states.attack2)
             {
                 attacks[1].attack = true;
                 attacks[1].attackTimer = 0;
@@ -75,9 +74,9 @@ public class HandleAnimations : MonoBehaviour
 
                 if (attacks[1].attackTimer > attackRate || attacks[0].timesPressed >= 3)
                 {
-                    attacks[1].attack = false;
                     attacks[1].attackTimer = 0;
-                    attacks[1].timesPressed++;
+                    attacks[1].attack = false;
+                    attacks[1].timesPressed = 0;
                 }
             }
         }
@@ -91,7 +90,7 @@ public class HandleAnimations : MonoBehaviour
         anim.SetBool("Attack1", false);
         anim.SetBool("Attack2", false);
         anim.SetBool("Jump", true);
-        StartCoroutine(CloseBoolInAnim("Jump"));
+        StartCoroutine(CloseBoolInAnim("Jump"));  
     }
 
     IEnumerator CloseBoolInAnim(string name)
@@ -108,3 +107,4 @@ public class AttacksBase
     public float attackTimer;
     public int timesPressed;
 }
+    

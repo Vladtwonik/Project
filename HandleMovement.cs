@@ -1,15 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Collections;
 
-public class HandleMovement : MonoBehaviour
-{
+public class HandleMovement : MonoBehaviour {
+
     Rigidbody2D rb;
     StateManager states;
     HandleAnimations anim;
 
-    public float acceleration = 10; //ускорение 
-    public float airAcceleration = 5; //ускорение в воздухе
+    public float acceleration = 30;
+    public float airAcceleration = 15;
     public float maxSpeed = 60;
     public float jumpSpeed = 5;
     public float jumpDuration = 5;
@@ -18,17 +17,16 @@ public class HandleMovement : MonoBehaviour
     bool canVariableJump;
     float jmpTimer;
 
-    void Start()
-    {
+	void Start () {
         rb = GetComponent<Rigidbody2D>();
         states = GetComponent<StateManager>();
         anim = GetComponent<HandleAnimations>();
         rb.freezeRotation = true;
-    }
-
-    void FixedUpdate()
+	}
+	
+	void FixedUpdate ()
     {
-        if(!states.dontMove)
+        if (!states.dontMove)
         {
             HorizontalMovement();
             Jump();
@@ -38,13 +36,11 @@ public class HandleMovement : MonoBehaviour
     void HorizontalMovement()
     {
         actualSpeed = this.maxSpeed;
-
-        if(states.onGround && !states.currentlyAttacking)
+        if (states.onGround)
         {
             rb.AddForce(new Vector2((states.horizontal * actualSpeed) - rb.velocity.x * this.acceleration, 0));
         }
 
-        //в случае скольжения
         if (states.horizontal == 0 && states.onGround)
         {
             rb.velocity = new Vector2(0, rb.velocity.y);
@@ -96,7 +92,7 @@ public class HandleMovement : MonoBehaviour
     {
         float t = 0;
 
-        while (t < timer)
+        while(t < timer)
         {
             t += Time.deltaTime;
 

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,18 +8,18 @@ public class SelectScreenManager : MonoBehaviour
 {
     public int numberOfPlayers = 1;
     public List<PlayerInterfaces> plInterfaces = new List<PlayerInterfaces>();
-    public PotraitInfo[] potraitPrefabs; //все входы в игру (?) - портреты бойцов (собраны в одном массиве)
-    public int maxX; //сколько портретов на X и Y (?), НО ЭТО ОЧЕНЬ СЛОЖНО
-    public int maxY;
-    PotraitInfo[,] charGrid; //сетка, которую мы создаем для выбора входов
-    //запятая в квадратных скобочках - двумерный массив
+    int maxRow;
+    int maxCollumn;
+    List<PotraitInfo> potraitList = new List<PotraitInfo>();
 
-    public GameObject potraitCanvas; //рамка, в которой содержатся все портреты бойцов
-
-    bool loadLevel; //если мы выбрали бойца, тогда 
+    public GameObject potraitCanvas; // рамка, содержащая в себе все портреты возможных бойцов
+   
+    bool loadLevel; //если мы выбрали бойца, тогда загружаем уровень
     public bool bothPlayersSelected;
 
     CharacterManager charManager;
+
+    GameObject potraitPrefab;
 
     #region Singleton
     public static SelectScreenManager instance;
@@ -34,37 +34,52 @@ public class SelectScreenManager : MonoBehaviour
     }
     #endregion
 
-    void Start() 
+    void Start()
     {
         //начинаем с получения данных о персонаже, контроллера, в котором хранится информация о таковом
         charManager = CharacterManager.GetInstance();
         numberOfPlayers = charManager.numberOfUsers;
 
-        //создаем сетку
-        charGrid = new PotraitInfo[maxX, maxY];
+        potraitPrefab = Resources.Load("potraitPrefab") as GameObject;
+        CreatePotraits();
 
+        charManager.solo = (numberOfPlayers == 1);
+
+    }
+
+    void CreatePotraits()
+    {
+        GridLayoutGroup group = potraitCanvas.GetComponent<GridLayoutGroup>();
+
+        maxRow = group.constraintCount;
         int x = 0;
         int y = 0;
 
-        potraitPrefabs = potraitCanvas.GetComponentsInChildren<PotraitInfo>();
-
-        //нужно войти во все наши портреты
-        for (int i = 0 ; i < potraitPrefabs.Length ; i++)
+        for (int i = 0; i < charManager.characterList.Count; i++)
         {
-            potraitPrefabs[i].posX += x;
-            potraitPrefabs[i].posY += y;
+            CharacterBase c = charManager.characterList[i];
 
-            charGrid[x, y] = potraitPrefabs[i];
+            GameObject go = Instantiate(potraitPrefab) as GameObject;
+            go.transform.SetParent(potraitCanvas.transform);
 
-            if (x < maxX - 1) 
+            PotraitInfo p = go.GetComponent<PotraitInfo>();
+            p.img.sprite = c.icon;
+            p.characterId = c.charId;
+            p.posX = x;
+            p.posY = y;
+            potraitList.Add(p);
+
+            if(x < maxRow-1)
             {
                 x++;
             }
             else
             {
-                x = 0;
+                x=0;
                 y++;
             }
+
+            maxCollumn = y;
         }
     }
 
@@ -72,15 +87,15 @@ public class SelectScreenManager : MonoBehaviour
     {
         if (!loadLevel)
         {
-            for (int i = 0 ; i < plInterfaces.Count ; i++)
+            for (int i = 0; i < plInterfaces.Count; i++)
             {
                 if (i < numberOfPlayers)
                 {
                     if (Input.GetButtonUp("Fire2" + charManager.players[i].inputId))
-                        {
-                            plInterfaces[i].playerBase.hasCharacter = false;
-                        }
-                    
+                    {
+                        plInterfaces[i].playerBase.hasCharacter = false;
+                    }
+
                     if (!charManager.players[i].hasCharacter)
                     {
                         plInterfaces[i].playerBase = charManager.players[i];
@@ -95,146 +110,169 @@ public class SelectScreenManager : MonoBehaviour
                     charManager.players[i].hasCharacter = true;
                 }
             }
+           
         }
 
         if(bothPlayersSelected)
         {
             Debug.Log("loading");
-            StartCoroutine("LoadLevel");
+            StartCoroutine("LoadLevel"); //и начинаем корутину загрузки уровня
             loadLevel = true;
+            bothPlayersSelected = false;
         }
         else
         {
-            if(charManager.players[0].hasCharacter && charManager.players[1].hasCharacter)
+            if(charManager.players[0].hasCharacter 
+                && charManager.players[1].hasCharacter)
             {
                 bothPlayersSelected = true;
             }
+           
+        }
+    }
+  
+    void HandleSelectScreenInput(PlayerInterfaces pl, string playerId)
+    {
+        #region Grid Navigation
+
+        /*To navigate in the grid
+         * we simply change the active x and y to select what entry is active
+         * we also smooth out the input so if the user keeps pressing the button
+         * it won't switch more than once over half a second
+         */
+
+        float vertical = Input.GetAxis("Vertical" + playerId);
+
+        if (vertical != 0)
+        {
+            if (!pl.hitInputOnce)
+            {
+                if (vertical > 0)
+                {
+                    pl.activeY = (pl.activeY > 0) ? pl.activeY - 1 : maxCollumn;
+                }
+                else
+                {
+                    pl.activeY = (pl.activeY < maxCollumn) ? pl.activeY + 1 : 0;
+                }
+
+                pl.hitInputOnce = true;
+            }
+        }
+
+        float horizontal = Input.GetAxis("Horizontal" + playerId);
+
+        if (horizontal != 0)
+        {
+            if (!pl.hitInputOnce)
+            {
+                if (horizontal > 0)
+                {
+                    pl.activeX = (pl.activeX > 0) ? pl.activeX - 1 : maxRow-1;
+                }
+                else
+                {
+                    pl.activeX = (pl.activeX < maxRow-1) ? pl.activeX + 1 : 0;
+                }
+
+                pl.timerToReset = 0;
+                pl.hitInputOnce = true;
+            }
+        }
+       
+        if(vertical == 0 && horizontal == 0)
+        {
+            pl.hitInputOnce = false;
+        }
+
+        if (pl.hitInputOnce)
+        {
+            pl.timerToReset += Time.deltaTime;
+
+            if (pl.timerToReset > 0.8f)
+            {
+                pl.hitInputOnce = false;
+                pl.timerToReset = 0;
+            }
+        }
+
+        #endregion
+
+        //если игрок нажал "пробел", то он определился в выборе бойца
+        if (Input.GetButtonUp("Fire1" + playerId))
+        {
+            //проиграем анимацию удара (можно любую другую), 
+            //чтобы показать реакцию персонажа, потому что почему бы и нет
+            pl.createdCharacter.GetComponentInChildren<Animator>().Play("Kick");
+
+            //пропустить персонажа в контроллер персонажей, чтобы он понял, какой префаб выбран игроком
+            pl.playerBase.playerPrefab =
+               charManager.returnCharacterWithID(pl.activePotrait.characterId).prefab;
+
+            pl.playerBase.hasCharacter = true;
         }
     }
 
     IEnumerator LoadLevel()
     {
         //проверяем, является ли игрок компьютером
-        for (int i = 0 ; i < charManager.players.Count ; i++)
+        for (int i = 0; i < charManager.players.Count; i++)
         {
-            if (charManager.players[i].playerType == PlayerBase.PlayerType.ai)
+            if(charManager.players[i].playerType == PlayerBase.PlayerType.ai)
             {
                 if(charManager.players[i].playerPrefab == null)
                 {
-                    int ranValue = Random.Range(0, potraitPrefabs.Length);//В ЭТОЙ СТРОЧКЕ У ТЕБЯ ДОЛЖЕН БЫТЬ НЕ РАНДОМ
+                    int ranValue = Random.Range(0, potraitList.Count);
 
-                    charManager.players[i].playerPrefab =
-                        charManager.returnCharacterWithID(potraitPrefabs[ranValue].characterId).prefab;
+                    charManager.players[i].playerPrefab = 
+                        charManager.returnCharacterWithID(potraitList[ranValue].characterId).prefab;
 
-                    Debug.Log(potraitPrefabs[ranValue].characterId);
+                    Debug.Log(potraitList[ranValue].characterId);
                 }
             }
         }
 
         yield return new WaitForSeconds(2);
-        SceneManager.LoadSceneAsync("level", LoadSceneMode.Single);
+
+        if (charManager.solo)
+        {
+            MySceneManager.GetInstance().CreateProgression();
+            MySceneManager.GetInstance().LoadNextOnProgression();
+        }
+        else
+        {
+            MySceneManager.GetInstance().RequestLevelLoad(SceneType.prog, "level_1");
+        }
 
     }
 
-    void HandleSelectScreenInput(PlayerInterfaces pl, string playerId) //передвижение по сетке
-    {
-        #region Grid Navigation
-
-        /* Для навигации в сетке бойцов
-         * Мы просто меняем активные x и y координаты для выбора активного входа 
-         * Также можно стирать рамку вокруг выбранного бойца, если игрок нажимает на кнопку
-         * Не переключается чаще чем в половину секунды
-         */
-        
-        float vertical = Input.GetAxis("Vertical" + playerId); //берем ось, клавиши управления которой работают в соответствии с id игрока 
-
-        if(vertical != 0)
-        {
-            if(!pl.hitInputOnce)
-            {
-                if(vertical > 0)
-                {
-                    pl.activeY = (pl.activeY > 0) ? pl.activeY - 1 : maxY - 1;
-                }
-                else
-                {
-                    pl.activeY = (pl.activeY < maxY - 1) ? pl.activeY + 1 : 0;
-                }
-
-                pl.hitInputOnce = true; 
-            }
-        }
-
-        float horizontal = Input.GetAxis("Horizontal" + playerId);
-
-        if(horizontal != 0)
-        {
-            if(!pl.hitInputOnce)
-            {
-                if(horizontal > 0)
-                {
-                    pl.activeX = (pl.activeX > 0) ? pl.activeX - 1 : maxX - 1;
-                }
-                else
-                {
-                    pl.activeX = (pl.activeX < maxX - 1) ? pl.activeX + 1 : 0;
-                }
-
-                pl.timerToReset = 0;
-                pl.hitInputOnce = true; 
-            }
-        }
-
-        if(vertical == 0 && horizontal == 0)
-        {
-            pl.hitInputOnce = false;
-        }
-
-        if(pl.hitInputOnce)
-        {
-            pl.timerToReset += Time.deltaTime;
-
-            if(pl.timerToReset > 0.8f)
-            {
-                pl.hitInputOnce = false;
-                pl.timerToReset = 0;
-            }
-        }
-        
-        #endregion
-
-        //если игрок нажал "пробел", то он определился в выборе бойца
-        if(Input.GetButtonUp("Fire1" + playerId))
-        {
-            //проиграем анимацию удара (можно любую другую), 
-            //чтобы показать реакцию персонажа, потому что почему бы и нет
-            pl.createdCharacter.GetComponentInChildren<Animator>().Play("Kick"); //ВЫБЕРИ СВОЮ АНИМАЦИЮ
-
-            //пропустить персонажа в контроллер персонажей, чтобы он понял, какой префаб выбран игроком
-            pl.playerBase.playerPrefab = charManager.returnCharacterWithID(pl.activePotrait.characterId).prefab;
-            
-            pl.playerBase.hasCharacter = true;
-        }
-    }
     void HandleSelectorPosition(PlayerInterfaces pl) //обновляет положение рамки выбора бойца
     {
-        pl.selector.SetActive(true);//включить рамку выбора бойца
+        pl.selector.SetActive(true); //включить рамку выбора бойца
 
-        pl.activePotrait = charGrid[pl.activeX, pl.activeY];//находим активный портрет бойца
+        PotraitInfo pi = ReturnPotrait(pl.activeX, pl.activeY);
 
-        //помещаем рамку на выбранную позицию
-        Vector2 selectorPosition = pl.activePotrait.transform.localPosition;
-        selectorPosition = selectorPosition + new Vector2(potraitCanvas.transform.localPosition.x,
-                                                          potraitCanvas.transform.localPosition.y);
-        pl.selector.transform.localPosition = selectorPosition;
+        if (pi != null)
+        {
+            pl.activePotrait = pi;//находим активный портрет бойца
+
+            //помещаем рамку на выбранную позицию
+            Vector2 selectorPosition = pl.activePotrait.transform.localPosition;
+
+            selectorPosition = selectorPosition + new Vector2(potraitCanvas.transform.localPosition.x
+                , potraitCanvas.transform.localPosition.y);
+
+            pl.selector.transform.localPosition = selectorPosition;
+        }
     }
-    void HandleCharacterPreview(PlayerInterfaces pl)//превью и активированный боец - разные вещи, смотри этот метод
+
+    void HandleCharacterPreview(PlayerInterfaces pl)
     {
         //если у нас есть отображаемый портрет бойца, который не совпадает с активным (выбираемым нами)
         //это значит мы изменили персонажей
-        if(pl.previewPortrait != pl.activePotrait)
+        if (pl.previewPotrait != pl.activePotrait)
         {
-            if(pl.createdCharacter != null)//удаляем выбор персонажа, если игрок осуществил таковой
+            if (pl.createdCharacter != null)//удаляем выбор персонажа, если игрок осуществил таковой
             {
                 Destroy(pl.createdCharacter);
             }
@@ -244,10 +282,10 @@ public class SelectScreenManager : MonoBehaviour
                 CharacterManager.GetInstance().returnCharacterWithID(pl.activePotrait.characterId).prefab,
                 pl.charVisPos.position,
                 Quaternion.identity) as GameObject;
-            
+
             pl.createdCharacter = go;
 
-            pl.previewPortrait = pl.activePotrait;
+            pl.previewPotrait = pl.activePotrait;
 
             if(!string.Equals(pl.playerBase.playerId, charManager.players[0].playerId))
             {
@@ -255,21 +293,40 @@ public class SelectScreenManager : MonoBehaviour
             }
         }
     }
-}
 
-[System.Serializable]
-public class PlayerInterfaces
-{
-    public PotraitInfo activePotrait;//определенный активный портрет бойца для первого игрока (для играющего?)
-    public PotraitInfo previewPortrait; 
-    public GameObject selector;//индикатор выбора для первого игрока (рамка)
-    public Transform charVisPos;//отображение позиции для первого игрока
-    public GameObject createdCharacter;//задаем бойца для первого игрока (?)
-    public int activeX;//активные X и Y для входа для первого игрока
-    public int activeY;
 
-    //стирает рамку выбора предыдущего бойца
-    public bool hitInputOnce;
-    public float timerToReset;
-    public PlayerBase playerBase; 
+    PotraitInfo ReturnPotrait(int x, int y)
+    {
+        PotraitInfo r = null;
+        for (int i = 0; i < potraitList.Count; i++)
+        {
+            if(potraitList[i].posX == x && potraitList[i].posY == y)
+            {
+                r = potraitList[i];
+            }
+        }
+
+        return r;
+    }
+
+    [System.Serializable]
+    public class PlayerInterfaces
+    {
+        public PotraitInfo activePotrait; //определенный активный портрет бойца для player1
+        public PotraitInfo previewPotrait; 
+        public GameObject selector; //индикатор выбора для player 1 (рамка)
+        public Transform charVisPos; //отображение позиции для player 1 игрока
+        public GameObject createdCharacter; //задаем бойца для player 1
+
+        public int activeX;//активные X и Y для входа для player 1
+        public int activeY;
+
+        //стирает рамку выбора предыдущего бойца
+        public bool hitInputOnce;
+        public float timerToReset;
+
+        public PlayerBase playerBase;
+
+    }
+
 }
